@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シェープファイルのつらみ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 美しいグラデーション背景 */
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                #667eea 0%,
+                #764ba2 25%,
+                #f093fb 50%,
+                #f5576c 75%,
+                #4facfe 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+            opacity: 0.08;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .slide {
+            display: none;
+            width: min(95vw, 1100px);
+            height: min(85vh, 700px);
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(40px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(60px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .slide-content {
+            padding: 40px;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* タイトルスライド専用 */
+        .title-slide {
+            text-align: center;
+            align-items: center;
+        }
+
+        .slide h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .slide h2 {
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
+
+        .slide h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+
+        .slide p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            color: #e2e8f0;
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .slide li {
+            margin-bottom: 0.7rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        /* カード */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .problem-card {
+            background: rgba(245, 87, 108, 0.08);
+            border: 1px solid rgba(245, 87, 108, 0.2);
+        }
+
+        .solution-card {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .info-card {
+            background: rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        /* 三重苦ボックス */
+        .trinity-box {
+            background: rgba(245, 87, 108, 0.1);
+            border: 1px solid rgba(245, 87, 108, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .trinity-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .trinity-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge {
+            background: rgba(245, 87, 108, 0.2);
+            color: #fca5a5;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid rgba(245, 87, 108, 0.4);
+        }
+
+        .result-text {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        /* ツイート埋め込み風 */
+        .tweet-embed {
+            background: rgba(15, 15, 25, 0.8);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tweet-user {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+
+        .user-handle {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .tweet-date {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .tweet-content {
+            color: #e2e8f0;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .tweet-stats {
+            display: flex;
+            gap: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* 反応ツイート */
+        .reactions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .reaction-tweet {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .reaction-tweet:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .reaction-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .reaction-avatar {
+            font-size: 1rem;
+        }
+
+        .reaction-name {
+            font-weight: 600;
+            color: #a78bfa;
+            font-size: 0.85rem;
+        }
+
+        .reaction-content {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        /* ファイルグリッド */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-ext {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.3rem;
+        }
+
+        .file-desc {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* テーブル */
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .modern-table th {
+            background: rgba(103, 126, 234, 0.15);
+            color: #ffffff;
+            padding: 0.8rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .modern-table td {
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 0.85rem;
+        }
+
+        /* ハイライトボックス */
+        .highlight-box {
+            background: rgba(103, 126, 234, 0.1);
+            border: 1px solid rgba(103, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* ナビゲーション */
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(15, 15, 35, 0.9);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-btn:hover {
+            border-color: rgba(103, 126, 234, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* スライドインジケーター */
+        .slide-indicator {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(15, 15, 35, 0.9);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            color: #a78bfa;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+
+        .icon {
+            font-size: 1.2rem;
+            margin-right: 6px;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .slide {
+                width: 95vw;
+                height: 90vh;
+            }
+            
+            .slide-content {
+                padding: 25px;
+            }
+            
+            .files-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .trinity-badges {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+
+    <div class="slide-indicator">
+        <span id="currentSlide">1</span> / <span id="totalSlides">9</span>
+    </div>
+
+    <div class="container">
+        <!-- スライド1: タイトル -->
+        <div class="slide active">
+            <div class="slide-content title-slide">
+                <h1>🗂️ シェープファイルのつらみ</h1>
+                <p class="subtitle">行政オープンデータで直面する現実的な問題と解決策</p>
+                
+                <div class="trinity-box">
+                    <div class="trinity-title">よく見かける問題の三重苦</div>
+                    <div class="trinity-badges">
+                        <span class="badge">PRJファイルなし</span>
+                        <span class="badge">座標系不明</span>
+                        <span class="badge">Shift-JIS</span>
+                    </div>
+                    <div class="result-text">= データ利用の大きな障壁 😵</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド2: 背景とツイート -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 背景</h2>
+                
+                <div class="info-card">
+                    <h3><span class="icon">🏛️</span>自治体オープンデータの現状</h3>
+                    <ul>
+                        <li>多くのデータがシェープファイル形式で配布</li>
+                        <li>仕様上の不備により扱いづらいケースが頻発</li>
+                        <li>利用者が手作業で修正作業を強いられる</li>
+                    </ul>
+                </div>
+                
+                <!-- ツイート埋め込み風 -->
+                <div class="tweet-embed">
+                    <div class="tweet-header">
+                        <div class="tweet-user">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-info">
+                                <div class="user-name">asahina</div>
+                                <div class="user-handle">@asahina820</div>
+                            </div>
+                        </div>
+                        <div class="tweet-date">2025年8月5日 10:36</div>
+                    </div>
+                    <div class="tweet-content">
+                        行政のオープンデータのとあるシェープファイルが<br>
+                        ・prjファイルがない<br>
+                        ・座標系が書かれてない<br>
+                        ・エンコーディングがShift-JIS<br>
+                        の3連コンボで大横転しました
+                    </div>
+                    <div class="tweet-stats">
+                        <div class="stat-item">💬 65</div>
+                        <div class="stat-item">🔄 21</div>
+                        <div class="stat-item">❤️ 4</div>
+                        <div class="stat-item">👁️ 18.5K</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド3: 反応ツイート -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💬 コミュニティの反応</h2>
+                
+                <div class="info-card">
+                    <h3><span class="icon">📈</span>大きな反響</h3>
+                    <p>このツイートは<strong>18,500回</strong>以上表示され、多くのGIS関係者から共感と知見が寄せられました。</p>
+                </div>
+
+                <div class="reactions-container">
+                    <div class="reaction-tweet">
+                        <div class="reaction-header">
+                            <span class="reaction-avatar">👨‍💻</span>
+                            <span class="reaction-name">GISエンジニア</span>
+                        </div>
+                        <div class="reaction-content">
+                            "あるある過ぎて泣ける...特に自治体のデータは古いシステムで作成されてるから、この三重苦は本当によく遭遇する"
+                        </div>
+                    </div>
+
+                    <div class="reaction-tweet">
+                        <div class="reaction-header">
+                            <span class="reaction-avatar">🏢</span>
+                            <span class="reaction-name">行政関係者</span>
+                        </div>
+                        <div class="reaction-content">
+                            "庁内でもこの問題は認識していて、新しいシステムではUTF-8とPRJファイル出力に対応予定です。ただ、過去のデータ修正は...😅"
+                        </div>
+                    </div>
+
+                    <div class="reaction-tweet">
+                        <div class="reaction-header">
+                            <span class="reaction-avatar">🎓</span>
+                            <span class="reaction-name">大学研究者</span>
+                        </div>
+                        <div class="reaction-content">
+                            "研究室の学生にいつも説明してる問題。QGISで座標系を推測する作業、もはや必修科目状態"
+                        </div>
+                    </div>
+
+                    <div class="reaction-tweet">
+                        <div class="reaction-header">
+                            <span class="reaction-avatar">💡</span>
+                            <span class="reaction-name">GISコンサルタント</span>
+                        </div>
+                        <div class="reaction-content">
+                            "クライアントに「なぜGeoJSONやGeoPackageが良いのか」を説明する際の完璧な事例。この記事を共有させてもらいます！"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="solution-card">
+                    <p style="text-align: center; font-weight: 600;">
+                        → 業界全体で共通認識されている課題として浮き彫りに
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド4: シェープファイルとは -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🗃️ シェープファイルとは</h2>
+                
+                <div class="info-card">
+                    <h3><span class="icon">📚</span>基本情報</h3>
+                    <ul>
+                        <li><strong>ESRI社</strong>が提唱したベクター形式の地理空間データフォーマット</li>
+                        <li><strong>1998年</strong>に仕様が公開され、25年以上使われ続けている</li>
+                        <li>現在も行政オープンデータで最も多く見られる形式</li>
+                        <li>GIS業界では事実上の標準フォーマット</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">📝</span>正しい表記</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                        <div>
+                            <div style="font-weight: 700; color: #86efac; margin-bottom: 0.5rem;">✅ 正しい</div>
+                            <div style="line-height: 1.5;">
+                                「シェープファイル」<br>
+                                「Shapefile」
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #fca5a5; margin-bottom: 0.5rem;">❌ 誤り</div>
+                            <div style="line-height: 1.5;">
+                                「Shapeファイル」<br>
+                                「ShapeFile」
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド5: ファイル構成 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🧩 ファイル構成</h2>
+                
+                <div class="problem-card">
+                    <h3><span class="icon">📁</span>必須ファイル（3つセット）</h3>
+                    <div class="files-grid">
+                        <div class="file-item" style="border-left: 3px solid #f5576c;">
+                            <div class="file-ext" style="color: #fca5a5;">.shp</div>
+                            <div class="file-desc">図形の情報</div>
+                        </div>
+                        <div class="file-item" style="border-left: 3px solid #f5576c;">
+                            <div class="file-ext" style="color: #fca5a5;">.shx</div>
+                            <div class="file-desc">図形のインデックス情報</div>
+                        </div>
+                        <div class="file-item" style="border-left: 3px solid #f5576c;">
+                            <div class="file-ext" style="color: #fca5a5;">.dbf</div>
+                            <div class="file-desc">属性データ（dBASE IV形式）</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="solution-card">
+                    <h3><span class="icon">📎</span>補助ファイル（任意だが重要）</h3>
+                    <div class="files-grid">
+                        <div class="file-item" style="border-left: 3px solid #22c55e;">
+                            <div class="file-ext" style="color: #86efac;">.prj</div>
+                            <div class="file-desc">座標系定義（WKT形式）</div>
+                        </div>
+                        <div class="file-item" style="border-left: 3px solid #22c55e;">
+                            <div class="file-ext" style="color: #86efac;">.cpg</div>
+                            <div class="file-desc">文字コード情報</div>
+                        </div>
+                        <div class="file-item" style="border-left: 3px solid #22c55e;">
+                            <div class="file-ext" style="color: #86efac;">.sbn/.sbx</div>
+                            <div class="file-desc">空間インデックス</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <span class="icon">⚠️</span>
+                    1つのデータでも<strong>複数ファイル</strong>が必要！
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド6: PRJファイル問題 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❌ 問題1: PRJファイルがない</h2>
+                
+                <div class="problem-card">
+                    <h3><span class="icon">🤔</span>なぜ起こる？</h3>
+                    <ul>
+                        <li>シェープファイル仕様書では<strong>.prjは必須ではない</strong></li>
+                        <li>CAD由来システムでは座標系を内部処理で隠蔽</li>
+                        <li>古い業務システムは.prjファイルを出力しない設計</li>
+                        <li>ESRI独自拡張のため、他社システムで対応不完全</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">😵</span>利用者への影響</h3>
+                    <ul>
+                        <li>座標参照系が判断できない</li>
+                        <li>地図上で正しい位置に表示されない</li>
+                        <li>他のデータと重ね合わせができない</li>
+                        <li><strong>利用者が座標系を推測・特定する必要</strong></li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <p style="text-align: center; font-weight: 600;">
+                        💡 本来は配布元が座標参照系を明記すべき
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド7: 文字コード問題 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔤 問題2: 文字コードがShift_JIS</h2>
+                
+                <div class="problem-card">
+                    <h3><span class="icon">📚</span>技術的背景</h3>
+                    <ul>
+                        <li>.dbfファイルは<strong>dBASE IV</strong>フォーマット</li>
+                        <li>仕様書に文字コードの定義なし → ソフトウェア依存</li>
+                        <li>従来のファイルは<strong>Shift_JIS</strong>で作成されることが多い</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">⚖️</span>Shift_JIS vs UTF-8</h3>
+                    <table class="modern-table">
+                        <tr>
+                            <th>項目</th>
+                            <th>Shift_JIS</th>
+                            <th>UTF-8</th>
+                        </tr>
+                        <tr>
+                            <td>日本語対応</td>
+                            <td>多くの文字を格納可能</td>
+                            <td>バイト数制限で文字数少ない</td>
+                        </tr>
+                        <tr>
+                            <td>国際化</td>
+                            <td>日本語環境に特化</td>
+                            <td>世界標準・多言語対応</td>
+                        </tr>
+                        <tr>
+                            <td>現代的対応</td>
+                            <td>レガシーシステム</td>
+                            <td>Web・現代OS標準</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="solution-card">
+                    <p style="text-align: center; font-weight: 600;">
+                        <span class="icon">✅</span>ArcGIS 10.2.1以降：UTF-8がデフォルト
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド8: QGISでの対応策 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛠️ QGISでの対応策</h2>
+                
+                <div class="solution-card">
+                    <h3><span class="icon">🗺️</span>座標参照系の割り当て</h3>
+                    <ol>
+                        <li>レイヤプロパティ → ソース → 設定されたCRS</li>
+                        <li>正しいCRS（例：EPSG:6668 JGD2011）を手動指定</li>
+                        <li><strong>経験則</strong>：その地域の平面直角座標系を試す</li>
+                    </ol>
+                </div>
+
+                <div class="solution-card">
+                    <h3><span class="icon">🔤</span>文字コードの指定</h3>
+                    <ol>
+                        <li>レイヤプロパティ → ソース → エンコーディング</li>
+                        <li>UTF-8で文字化け発生 → 「Shift_JIS」に変更</li>
+                        <li>属性テーブルで文字化けが解消されることを確認</li>
+                    </ol>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">💾</span>再保存の推奨</h3>
+                    <p>正しく設定後、以下のフォーマットでエクスポート：</p>
+                    <ul>
+                        <li><strong>GeoPackage (.gpkg)</strong> - 単一ファイル、制限なし</li>
+                        <li><strong>GeoJSON</strong> - Web親和性が高い</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド9: まとめ・推奨フォーマット -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🚀 まとめ・推奨フォーマット</h2>
+                
+                <div class="solution-card">
+                    <h3><span class="icon">📄</span>GeoJSON</h3>
+                    <ul>
+                        <li>JSONベースのベクタデータフォーマット</li>
+                        <li>Web アプリケーションとの親和性が極めて高い</li>
+                        <li>人間が直接内容を確認・編集可能</li>
+                    </ul>
+                </div>
+
+                <div class="solution-card">
+                    <h3><span class="icon">📦</span>GeoPackage (.gpkg)</h3>
+                    <ul>
+                        <li>OGC国際標準フォーマット</li>
+                        <li>SQLiteベース → 単一ファイルで管理簡単</li>
+                        <li>ファイルサイズ制限なし、3Dデータ対応</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <span class="icon">🎯</span>
+                    <strong>結論：</strong>シェープファイルはGIS黎明期の功労者だが、<br>
+                    現代的なフォーマットへの移行で<br>
+                    <strong>より使いやすいオープンデータを実現</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← 前へ</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">次へ →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[n].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = n + 1;
+            
+            document.getElementById('prevBtn').disabled = n === 0;
+            document.getElementById('nextBtn').disabled = n === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newSlide = currentSlide + direction;
+            if (newSlide >= 0 && newSlide < totalSlides) {
+                currentSlide = newSlide;
+                showSlide(currentSlide);
+            }
+        }
+
+        // キーボードナビゲーション
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                changeSlide(-1);
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                changeSlide(1);
+                e.preventDefault();
+            }
+        });
+
+        // 初期表示
+        showSlide(0);
+    </script>
+</body>
+</html>
