@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>asahinaのスライドコレクション</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 動的背景 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                #667eea 0%,
+                #764ba2 25%,
+                #f093fb 50%,
+                #f5576c 75%,
+                #4facfe 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+            opacity: 0.05;
+            z-index: -2;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 0%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+        }
+
+        /* グリッド背景 */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridSlide 25s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridSlide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ヘッダー */
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 3rem 0;
+        }
+
+        .main-title {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        /* スライド一覧 */
+        .slides-section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .slides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .slide-card {
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .slide-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(139, 92, 246, 0.1);
+        }
+
+        .slide-card:hover::before {
+            opacity: 1;
+        }
+
+        .slide-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .slide-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .slide-description {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .slide-meta {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slide-launch {
+            background: linear-gradient(135deg, rgba(103, 126, 234, 0.8), rgba(139, 92, 246, 0.8));
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .slide-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(103, 126, 234, 0.3);
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(79, 172, 254, 0.15);
+            color: #7dd3fc;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        .tag.problem {
+            background: rgba(245, 87, 108, 0.15);
+            color: #fca5a5;
+            border-color: rgba(245, 87, 108, 0.2);
+        }
+
+        .tag.solution {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                margin-bottom: 2rem;
+                padding: 2rem 0;
+            }
+            
+            .slides-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .slide-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 特殊効果 */
+        .glow {
+            position: relative;
+        }
+
+        .glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(103, 126, 234, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .glow:hover::before {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1 class="main-title">🗂️ asahinaのスライドコレクション</h1>
+            <p class="subtitle">
+                コミュニティや学会でGIS・FOSS4Gに関する情報を発信しています
+            </p>
+        </header>
+
+        <!-- スライド一覧 -->
+        <section class="slides-section">
+            <h2 class="section-title">🎯 プレゼンテーション</h2>
+            
+            <div class="slides-grid" id="slides-container">
+                <!-- スライドはJavaScriptで動的に生成 -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // スライドデータをJSON形式で管理
+        const slidesData = [
+            {
+                id: "shapefile-troubles",
+                icon: "🗂️",
+                title: "シェープファイルのつらみ",
+                description: "シェープファイルの仕様と問題点について解説",
+                tags: [
+                    { name: "シェープファイル", type: "problem" },
+                    { name: "文字コード", type: "problem" },
+                    { name: "QGIS", type: "solution" },
+                    { name: "コミュニティ", type: "default" }
+                ],
+                file: "shapefile_slides.html",
+                active: true
+            }
+            // 今後のスライドはここに追加
+        ];
+
+        // スライドカードを生成する関数
+        function createSlideCard(slide) {
+            const isActive = slide.active;
+            const cardClass = isActive ? 'slide-card glow' : 'slide-card';
+            const cardStyle = isActive ? '' : 'opacity: 0.6; cursor: not-allowed;';
+            const linkElement = isActive ? `href="${slide.file}" target="_blank"` : '';
+            const buttonText = isActive ? 'プレゼン開始 →' : 'Coming Soon';
+            const buttonStyle = isActive ? '' : 'opacity: 0.5;';
+            const buttonDisabled = isActive ? '' : 'disabled';
+
+            const tagsHTML = slide.tags.map(tag => {
+                const tagClass = tag.type === 'problem' ? 'tag problem' : 
+                               tag.type === 'solution' ? 'tag solution' : 'tag';
+                return `<span class="${tagClass}">${tag.name}</span>`;
+            }).join('');
+
+            const cardHTML = `
+                ${isActive ? `<a ${linkElement} class="${cardClass}" style="${cardStyle}">` : `<div class="${cardClass}" style="${cardStyle}">`}
+                    <div class="slide-icon">${slide.icon}</div>
+                    <h3 class="slide-title">${slide.title}</h3>
+                    <p class="slide-description">${slide.description}</p>
+                    <div class="tags">${tagsHTML}</div>
+                    <div class="slide-meta">
+                        <button class="slide-launch" ${buttonDisabled} style="${buttonStyle}">${buttonText}</button>
+                    </div>
+                ${isActive ? '</a>' : '</div>'}
+            `;
+
+            return cardHTML;
+        }
+
+        // スライド一覧を動的に生成
+        function renderSlides() {
+            const container = document.getElementById('slides-container');
+            const slidesHTML = slidesData.map(slide => createSlideCard(slide)).join('');
+            container.innerHTML = slidesHTML;
+
+            // アクティブなスライドカードにホバー効果を追加
+            document.querySelectorAll('.slide-card.glow').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-12px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+
+        // ページ読み込み時にスライドを生成
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSlides();
+        });
+
+        // スムーズスクロール
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('a[href^="#"]')) {
+                e.preventDefault();
+                const target = document.querySelector(e.target.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
